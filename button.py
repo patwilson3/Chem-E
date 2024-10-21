@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-import algremastered_new as alg
+import alg
 import time
 import threading
 import cv2
@@ -7,6 +7,8 @@ from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
 
+
+#initializing constants
 LED_PIN = 6
 STOP_SIGNAL_PIN = 16
 BUTTON_PIN = 22
@@ -26,23 +28,23 @@ GPIO.setup(LED_PIN, GPIO.OUT)
 
 #stops the car but setting stop_signal_pin to low
 def setStopPinOn():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT)
-    GPIO.output(STOP_SIGNAL_PIN, GPIO.LOW)
+    GPIO.setmode(GPIO.BCM) #BCM so program can understand what pins on the Raspberry pi we are using (GPIO pins) and what that pin will be used for
+    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #Setup is used to tell the Raspberry pi which pin will be used
+    GPIO.output(STOP_SIGNAL_PIN, GPIO.LOW) #Send a low signal to the specified pin
     GPIO.output(LED_PIN, GPIO.LOW)
 
 def setStopPinOff():
     # Moves the card by adding a high signal to designated stop signal
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT)
+    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #GPIO.OUT meaning it will be used as an output pin 
     time.sleep(0.2)
-    GPIO.output(STOP_SIGNAL_PIN, GPIO.HIGH)
-    time.sleep(0.2)
-    GPIO.output(LED_PIN, GPIO.HIGH)
+    GPIO.output(STOP_SIGNAL_PIN, GPIO.HIGH) #set pin to a high, raspberry pi sends out a high signal from specified pin
+    time.sleep(0.2) 
+    GPIO.output(LED_PIN, GPIO.HIGH) 
 
 def motor_open():
-    GPIO.output(forwardPin, GPIO.HIGH)
-    GPIO.output(backwardPin, GPIO.LOW)
+    GPIO.output(forwardPin, GPIO.HIGH) # motor turns a certain direction with one output pin high, and one low (motor will turn in direction of current flow)
+    GPIO.output(backwardPin, GPIO.LOW) 
     time.sleep(delayTime)
     # stop
     GPIO.output(forwardPin, GPIO.LOW)
@@ -81,8 +83,8 @@ def motor():
 
 def startOperations():
     # if operationactive not on, start operations
-    if not alg.operation_active.is_set():
-        threading.Thread(target=sequentialOperations).start()
+    if not alg.operation_active.is_set(): #checks to see if thread is already running
+        threading.Thread(target=sequentialOperations).start() #starts thread if it is not already running after start buttton is pressed
     else:
         print("already running")
 
@@ -94,11 +96,10 @@ def sequentialOperations():
         alg.operation_active.set()
         # defining stop pin
         setStopPinOn()
-        # motor will run regardless of thread but algorithm will not run if reset while motor is running
-        motor()
+        motor() #motor will run regardless of reset button
         print("motor done")
-        # if reset button was pressd algorithm will not run
-        if alg.operation_active.is_set():
+        
+        if alg.operation_active.is_set(): #if reset button was pressd algorithm will not run (this is used to avoid connecting the rasberry pi to a monitor and physically stopping the algorithm)
             # begin moving the car
             setStopPinOff()
             # start alg
