@@ -7,7 +7,7 @@ from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
 
-
+#This is a test to see if everyone sees
 #initializing constants
 LED_PIN = 6
 STOP_SIGNAL_PIN = 16
