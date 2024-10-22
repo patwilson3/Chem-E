@@ -18,6 +18,9 @@ backwardPin = 27
 delayTime = 2
 motor_opened = False
 
+# Pin that connects the LED
+LED_PIN2 = 10
+
 #setup
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -83,6 +86,9 @@ def motor():
 
 def startOperations():
     # if operationactive not on, start operations
+    
+    GPIO.output(LED_PIN2, GPIO.HIGH) # Turning on an LED that is connected to LED_PIN2
+
     if not alg.operation_active.is_set(): #checks to see if thread is already running
         threading.Thread(target=sequentialOperations).start() #starts thread if it is not already running after start buttton is pressed
     else:
