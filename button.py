@@ -17,6 +17,7 @@ forwardPin = 17
 backwardPin = 27
 delayTime = 2
 motor_opened = False
+MOTOR_OPEN = 4 #added a pin to 4 
 
 #setup
 GPIO.setmode(GPIO.BCM)
@@ -25,6 +26,7 @@ GPIO.setup(RESET_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(forwardPin, GPIO.OUT)
 GPIO.setup(backwardPin, GPIO.OUT)
 GPIO.setup(LED_PIN, GPIO.OUT)
+GPIO.setup(MOTOR_OPEN, GPIO.OUT) # set up to receive signal from raspberry pi
 
 #stops the car but setting stop_signal_pin to low
 def setStopPinOn():
@@ -45,6 +47,7 @@ def setStopPinOff():
 def motor_open():
     GPIO.output(forwardPin, GPIO.HIGH) # motor turns a certain direction with one output pin high, and one low (motor will turn in direction of current flow)
     GPIO.output(backwardPin, GPIO.LOW) 
+    GPIO.output(MOTOR_OPEN, GPIO.HIGH) # Turns on the LED on pin 13
     time.sleep(delayTime)
     # stop
     GPIO.output(forwardPin, GPIO.LOW)
