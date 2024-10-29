@@ -60,6 +60,10 @@ def motor_close():
     GPIO.output(forwardPin, GPIO.LOW)
     GPIO.output(backwardPin, GPIO.LOW)
 
+    # turn on LED
+    GPIO.output(LED_PIN, GPIO.HIGH)
+
+
 def motor():
     # spinforward
     GPIO.output(forwardPin, GPIO.HIGH)
