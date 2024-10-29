@@ -43,6 +43,10 @@ def setStopPinOff():
     GPIO.output(LED_PIN, GPIO.HIGH) 
 
 def motor_open():
+    
+    # turn off LED
+    GPIO.output(LED_PIN, GPIO.LOW)
+    
     GPIO.output(forwardPin, GPIO.HIGH) # motor turns a certain direction with one output pin high, and one low (motor will turn in direction of current flow)
     GPIO.output(backwardPin, GPIO.LOW) 
     time.sleep(delayTime)
