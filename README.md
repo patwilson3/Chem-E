@@ -7,3 +7,6 @@ things that have been added in this branch:
 <li> Raspberry pi send message function</li>
 <li> LCD circuit breadboard diagram</li>
 <li> Algorithm refactored</li>
+<br>
+
+Everything needs to be tested before pushing to main
