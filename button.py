@@ -6,6 +6,7 @@ import cv2
 from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
+import sendMessage
 
 #This is a test to see if everyone sees
 #initializing constants
