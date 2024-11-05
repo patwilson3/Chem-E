@@ -1,18 +1,19 @@
-import cv2
-import numpy as np
-from collections import deque
-import time
-from picamera2 import Picamera2, Preview
-from libcamera import controls
+import cv2 # for image processing
+import numpy as np # for numoy
+from collections import deque # creates a queue
+import time # counts time
+from picamera2 import Picamera2, Preview # manages camera 
+from libcamera import controls # manages camera
 import sys
-import threading
+import threading # blocks interference from other stuff
 
 
 
 #threading event 
-operation_active = threading.Event()
+operation_active = threading.Event() # signals when the operation is running
 #only allows one thread to effect the running_alg
-camera_lock = threading.Lock()
+camera_lock = threading.Lock() # prevents more than one thread from accessing the camera at once
+# Threading stuff is essential
 
 
 center_x = 600 // 2  # Calculate center x-coordinate
@@ -24,6 +25,7 @@ random_coords = [(np.random.randint(center_x - offset, center_x + offset),
                   np.random.randint(center_y - offset, center_y + offset)) for _ in range(30)]
 
 #extracts the RGB vlues of the specified pixels for a given frame
+# args are an image  frame and the random pixels
 def measure_color_change(frame, pixels):
     color_values = []
     for pixel in pixels:
@@ -56,14 +58,12 @@ def running_alg():
         while operation_active.is_set(): #while the reset button is not pressed 
             
             frame = picam2.capture_array() #Capturues a frame
-            
+            # can we directly measure the red value from the BGR form??***
                 
             frame_bw = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #convert to grayscale from BGR (openCV standard)
             frame_rgb = cv2.cvtColor(frame_bw, cv2.COLOR_GRAY2RGB) #convert from grayscale to RGB
 
-            pixels_to_measure = random_coords #select random pixels for measurement
-
-            color_values = measure_color_change(frame_rgb, pixels_to_measure) #returns a list of mean values
+            color_values = measure_color_change(frame_rgb, random_coords) #returns a list of mean values
             temp_array.append(color_values[0::3]) # append mean values to temp_array
             
 
@@ -73,8 +73,7 @@ def running_alg():
                     offset = base_val-60 #subtract 60 for the value offset, to adjust detection sensitivity and discrepancies
                     color_values_over_time['R'].append(np.mean(temp_array)-offset) #this is used for plotting purposes
                 if(np.mean(temp_array)-offset>80): #80, check if mean exceeds threshold value (based on previous data, 80 was selected as threshold value)
-                    stdev_array.append(np.std(np.array(temp_array)-offset)) #calculates std of adjusted temp_array, stores the value in stdev_array
-                    if(np.std(np.array(temp_array))<1.5):#1.5, if std is below threshold, meaning the reaction is no longer changing color
+                    if (np.std(np.array(temp_array) - offset) < 1.5):#1.5, if std is below threshold, meaning the reaction is no longer changing color
                         t1=time.time() #measure time
                         print("Time measured through framesize: ", (frame_size/30)) #print how long it took through framesize
                         print("time in seconds: ", t1-t0) #how long it took through time lib
