@@ -10,6 +10,17 @@ import sendMessage
 
 #This is a test to see if everyone sees
 #initializing constants
+'''
+TODOS:
+Need a function for magnetic stirer:
+specs: Needs a pin to output a HIGH signal 3 seconds After the motor turns
+
+Need a function for stepper motor:
+Specs: Need a new motor function that works with a stepper motor. Research how to configure a stepper motor
+This function will replace the old motor function, do not delete old motor function but update it
+
+Need to call sendMessage somehow, but first need to verify is this function is working. TESTS REQUIRED
+'''
 LED_PIN = 6
 STOP_SIGNAL_PIN = 16
 BUTTON_PIN = 22
