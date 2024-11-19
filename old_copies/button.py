@@ -7,8 +7,13 @@ from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
 
+#TODO TO IMPLEMENT
+# MAGNETIC STIR
+# ADD DELAY FOR STEP MOTO and IMPLEMENT STEP MOTOR
+
 
 #initializing constants
+MAGNETIC_STIR_PIN = -1 #find pin for MAGNETIC STIR
 LED_PIN = 6
 STOP_SIGNAL_PIN = 16
 BUTTON_PIN = 22
@@ -25,6 +30,15 @@ GPIO.setup(RESET_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(forwardPin, GPIO.OUT)
 GPIO.setup(backwardPin, GPIO.OUT)
 GPIO.setup(LED_PIN, GPIO.OUT)
+GPIO.setup(MAGNETIC_STIR_PIN, GPIO.output)
+
+def stepper_motor():
+    #TODO stepper function for stepper motor (new injection mechanism)
+    pass
+
+def start_magnetic_stir():
+    #turn on magnetic stir by sending a signal to mosfet
+    GPIO.output(MAGNETIC_STIR_PIN, GPIO.HIGH)
 
 #stops the car but setting stop_signal_pin to low
 def setStopPinOn():
@@ -98,6 +112,8 @@ def sequentialOperations():
         setStopPinOn()
         motor() #motor will run regardless of reset button
         print("motor done")
+        #time.sleep(3)
+        #wait three seconds before starting algorithm
         
         if alg.operation_active.is_set(): #if reset button was pressd algorithm will not run (this is used to avoid connecting the rasberry pi to a monitor and physically stopping the algorithm)
             # begin moving the car
