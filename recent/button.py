@@ -7,7 +7,7 @@ from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
 import sendMessage
-
+#from gpiozero import Servo
 #This is a test to see if everyone sees
 #initializing constants
 '''
@@ -18,9 +18,6 @@ specs: Needs a pin to output a HIGH signal 3 seconds After the motor turns (a ne
 Need a function for stepper motor:
 Specs: Need a new motor function that works with a stepper motor. Research how to configure a stepper motor
 This function will replace the old motor function, do not delete old motor function but update it (Can use current motor pins)
-
-Need a function for the LEDs:
-Specs: Need a new function that sets a pin to HIGH, a new constant is needed for the pin
 
 Need to call sendMessage somehow, but first need to verify is this function is working. *TESTS REQUIRED*
 
@@ -34,8 +31,12 @@ backwardPin = 27
 delayTime = 2
 motor_opened = False
 
+#2,3
 # Pin that connects the LED
 LED_PIN2 = 10
+
+#Pin that connects the stirrer
+STIRRER_PIN = 24
 
 #setup
 GPIO.setmode(GPIO.BCM)
@@ -51,6 +52,14 @@ def setStopPinOn():
     GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #Setup is used to tell the Raspberry pi which pin will be used
     GPIO.output(STOP_SIGNAL_PIN, GPIO.LOW) #Send a low signal to the specified pin
     GPIO.output(LED_PIN, GPIO.LOW)
+    
+def turnStirrerOn():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(STIRRER_PIN, GPIO.OUT)
+    GPIO.output(STIRRER_PIN, GPIO.HIGH)
+    
+    
+    
 
 def setStopPinOff():
     # Moves the card by adding a high signal to designated stop signal
@@ -119,6 +128,11 @@ def sequentialOperations():
         # defining stop pin
         setStopPinOn()
         motor() #motor will run regardless of reset button
+        #time.sleep(3)
+        #call to stir function
+        turnStirrerOn()
+        
+        
         print("motor done")
         
         if alg.operation_active.is_set(): #if reset button was pressd algorithm will not run (this is used to avoid connecting the rasberry pi to a monitor and physically stopping the algorithm)
