@@ -1,4 +1,5 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+from gpiozero import *
 import alg
 import time
 import threading
@@ -6,7 +7,7 @@ import cv2
 from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
-import sendMessage
+import i2cprotocol
 #from gpiozero import Servo
 #This is a test to see if everyone sees
 #initializing constants
@@ -82,7 +83,8 @@ def motor_open():
 def motor_close():
     GPIO.output(forwardPin, GPIO.LOW)
     GPIO.output(backwardPin, GPIO.HIGH)
-    time.sleep(delayTime)
+    
+
 
     # stop
     GPIO.output(forwardPin, GPIO.LOW)
@@ -184,6 +186,7 @@ GPIO.add_event_detect(RESET_PIN, GPIO.FALLING, callback=resetButton, bouncetime=
 try:
     while True:
         time.sleep(0.1)
+        i2cprotocol.send_message()
 
 #CTRL C to quit and cleanup GPIO
 except KeyBoardInterrupt:

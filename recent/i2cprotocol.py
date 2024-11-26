@@ -21,8 +21,4 @@ def send_message():
     lcd.message(f"{msg1:.4f} V", 2)
     
     
-while True:
-    send_message()
-
-
 
