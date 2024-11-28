@@ -40,22 +40,22 @@ LED_PIN2 = 10
 STIRRER_PIN = 24
 
 #setup
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(RESET_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(forwardPin, GPIO.OUT)
-GPIO.setup(backwardPin, GPIO.OUT)
-GPIO.setup(LED_PIN, GPIO.OUT)
+stop_signal = DigitalOutputDevice(STOP_SIGNAL_PIN)
+stirrer = DigitalOutputDevice(STIRRER_PIN)
+button = Button(BUTTON_PIN, pull_up=True)
+reset_button = Button(RESET_PIN, pull_up=True)
+forward_motor = DigitalOutputDevice(forwardPin)
+backward_motor = DigitalOutputDevice(backwardPin)
+led = LED(LED_PIN)
+led2 = LED(LED_PIN2)
 
 #stops the car but setting stop_signal_pin to low
 def setStopPinOn():
-    GPIO.setmode(GPIO.BCM) #BCM so program can understand what pins on the Raspberry pi we are using (GPIO pins) and what that pin will be used for
     GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #Setup is used to tell the Raspberry pi which pin will be used
     GPIO.output(STOP_SIGNAL_PIN, GPIO.LOW) #Send a low signal to the specified pin
     GPIO.output(LED_PIN, GPIO.LOW)
     
 def turnStirrerOn():
-    GPIO.setmode(GPIO.BCM)
     GPIO.setup(STIRRER_PIN, GPIO.OUT)
     GPIO.output(STIRRER_PIN, GPIO.HIGH)
     
@@ -64,7 +64,6 @@ def turnStirrerOn():
 
 def setStopPinOff():
     # Moves the card by adding a high signal to designated stop signal
-    GPIO.setmode(GPIO.BCM)
     GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #GPIO.OUT meaning it will be used as an output pin 
     time.sleep(0.2)
     GPIO.output(STOP_SIGNAL_PIN, GPIO.HIGH) #set pin to a high, raspberry pi sends out a high signal from specified pin
