@@ -103,8 +103,8 @@ def motor():
 
 def startOperations():
     # if operationactive not on, start operations
-    
-    GPIO.output(LED_PIN2, GPIO.HIGH) # Turning on an LED that is connected to LED_PIN2
+     
+    led2.on() # Turning on an LED that is connected to LED_PIN2
 
     if not alg.operation_active.is_set(): #checks to see if thread is already running
         threading.Thread(target=sequentialOperations).start() #starts thread if it is not already running after start buttton is pressed
