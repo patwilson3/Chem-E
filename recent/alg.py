@@ -5,7 +5,7 @@ import time
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 import threading
-import sendMessage
+
 
 # Threading event
 operation_active = threading.Event()

@@ -1,4 +1,4 @@
-import smbus
+import smbus2 as smbus
 import time
 
 '''From github: https://github.com/sterlingbeason/LCD-1602-I2C/blob/master/LCD.py'''
