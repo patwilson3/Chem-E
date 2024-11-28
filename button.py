@@ -1,5 +1,4 @@
-#import RPi.GPIO as GPIO
-from gpiozero import *
+from gpiozero import LED, Button, DigitalOutputDevice
 import alg
 import time
 import threading
@@ -144,20 +143,17 @@ def sequentialOperations():
         # open motor to neutralize reaction
         
 
-
-
-
-def buttonPressedCallback(channel):
+def buttonPressedCallback():
     # if statements act as safety net to make sure no multiple threads can run
-    if channel == BUTTON_PIN and not alg.operation_active.is_set():
-        print("Im Starting")
-        startOperations()
+    if not alg.operation_active.is_set():
+         print("Im Starting")
+         startOperations()
+       
 
-
-def resetButton(channel):
+def resetButtonCallback():
     #global motor_opened
     # if thread is active clear/reset it and make sure car is stopped
-    if alg.operation_active.is_set() and channel == RESET_PIN:
+    if alg.operation_active.is_set():
         alg.operation_active.clear()
         print("Operations were reset")
     # not active so ignore reset press
@@ -166,11 +162,10 @@ def resetButton(channel):
         #motor_close()
     #setStopPinOn()
     
-
-
 # awaits button press events
-GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, callback=buttonPressedCallback, bouncetime=100)
-GPIO.add_event_detect(RESET_PIN, GPIO.FALLING, callback=resetButton, bouncetime=100)
+button.when_pressed = buttonPressedCallback
+reset_button.when_pressed = resetButtonCallback
+
 
 # enters infinite loop so the program does not stop running
 try:
@@ -179,6 +174,5 @@ try:
         i2cprotocol.send_message()
 
 #CTRL C to quit and cleanup GPIO
-except KeyBoardInterrupt:
+except KeyboardInterrupt:
     print("finished")
-    GPIO.cleanup()
