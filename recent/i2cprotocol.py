@@ -20,5 +20,3 @@ def send_message():
     lcd.message(f"{msg:.4f} mA", 1)
     lcd.message(f"{msg1:.4f} V", 2)
     
-    
-

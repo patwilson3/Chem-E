@@ -17,7 +17,7 @@ max_expected = 4 #value to be determined
 def send_message():
     msg = ammeter.current()
     msg1 = ammeter.voltage()
-    time.sleep(0.05)
+    time.sleep(0.25)
     lcd.message(f"{msg:.4f} mA", 1)
     lcd.message(f"{msg1:.4f} V", 2)
 
