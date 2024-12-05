@@ -19,6 +19,7 @@ class button:
             self.line_flags = lgpio.SET_PULL_DOWN
             self.edge = lgpio.RISING_EDGE 
 
+
         #intialiaze gpio pin as an input, and declare whether it is a pull up or pull down
         status = lgpio.gpio_claim_input(self.chip, self.gpio_pin, self.line_flags)
         if status != 0:
@@ -62,6 +63,7 @@ class button:
                     return
             time.sleep(0.01) 
 
+
     def button_pressed(self, callback_function):
         """
         Registers a callback function to be called when the button is pressed.
@@ -93,7 +95,7 @@ class motor:
         #intialize gpio pin as an output
         status = lgpio.gpio_claim_output(self.chip, self.pin)
         if status != 0:
-            raise RuntimeError(f"Failed to claim GPIO {self.gpio_pin} as an output")
+            raise RuntimeError(f"Failed to claim GPIO {self.pin} as an output")
         
     def turn_on(self, seconds = 0):
         '''Turns on motor'''
@@ -116,50 +118,55 @@ class motor:
         if(lgpio.gpio_read(self.chip, self.pin) == 1):
             self.turn_off()
 
-        lgpio.gpio_free(self.chip, self.gpio_pin)
+        lgpio.gpio_free(self.chip, self.pin)
 
 
 class servo:
     '''TODO''' 
+
     MIN_PULSE_WIDTH = 500 / 1_000_000
     MAX_PULSE_WIDTH = 2500 / 1_000_000
     def __init__(self, gpio_pin, chip):
-        self.gpio_pin = gpio_pin
+        self.pin = gpio_pin
         self.chip = chip
         self.max_angle = 180
-
+        self.current_pulse = self.angle_to_pulse_width(90)
+        
+        self.set_angle(90)
+    def pulse_width_to_dutycycle(self, pulse_width_us, period_us=20000):
+        duty_cycle = (pulse_width_us / period_us) * 100
+        return duty_cycle
+        
+        
     def angle_to_pulse_width(self, angle):
         if(0<= angle <=180):
-            return self.MIN_PULSE_WIDTH + (angle / 180.0) * (self.MAX_PULSE_WIDTH - self.MIN_PULSE_WIDTH)
+            return int(500 + (angle/180.0) * (2500 - 500))
         raise ValueError("Angle must be between 0 and 180")
-
+    
+    def turn_on(self):
+        time.sleep(0.1)
+        status = lgpio.tx_pwm(self.chip, self.pin, 500, 50)
+        time.sleep(0.1)
+    
     def set_angle(self, angle):
         '''
         sets servo to specified angle
         '''
         pulse_width = self.angle_to_pulse_width(angle)
+        if abs(pulse_width - self.current_pulse) < 5:
+            return
         #send signal
-        self.send_pulse(pulse_width)
-    
-    def send_pulse(self, pulse_width):
-        #pulse in seconds
-        pulse_width_s = pulse_width / 1_000_000
-        #period for 50hz
-        period_s = 1 / 50
-
-            # Write high signal
-        status = lgpio.gpio_write(self.handle, self.pin, 1)
-        if status < 0:
-            raise RuntimeError(f"Failed to set GPIO {self.pin} high: {lgpio.error_text(status)}")
+        duty_cycle = self.pulse_width_to_dutycycle(pulse_width)
         
-        # Sleep for pulse width duration
-        time.sleep(pulse_width_s)
         
-        # Write low signal
-        status = lgpio.gpio_write(self.handle, self.pin, 0)
-        if status < 0:
-            raise RuntimeError(f"Failed to set GPIO {self.pin} low: {lgpio.error_text(status)}")
-
+        self.send_pwm(50, duty_cycle)
+        
+        self.current_pulse = pulse_width
+    def send_pwm(self, frequency, duty_cycle, pulse_offset = 0, pulse_cycles = 0):
+        status = lgpio.tx_pwm(self.chip, self.pin, frequency, duty_cycle, pulse_offset=pulse_offset, pulse_cycles=pulse_cycles)
+    def cleanup(self):
+        status = lgpio.tx_pwm(self.chip, self.pin, 0, 0)
+        lgpio.gpio_free(self.chip, self.pin)
 
 
 
