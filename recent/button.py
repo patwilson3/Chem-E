@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+from gpiozero import LED, Button, DigitalOutputDevice, Servo
 import alg
 import time
 import threading
@@ -6,20 +6,21 @@ import cv2
 from picamera2 import Picamera2, Preview
 import numpy as np
 import sys
-import sendMessage
-
+import i2cprotocol
+#from gpiozero import Servo
 #This is a test to see if everyone sees
 #initializing constants
 '''
 TODOS:
 Need a function for magnetic stirer:
-specs: Needs a pin to output a HIGH signal 3 seconds After the motor turns
+specs: Needs a pin to output a HIGH signal 3 seconds After the motor turns (a new pin is needed)
 
 Need a function for stepper motor:
 Specs: Need a new motor function that works with a stepper motor. Research how to configure a stepper motor
-This function will replace the old motor function, do not delete old motor function but update it
+This function will replace the old motor function, do not delete old motor function but update it (Can use current motor pins)
 
-Need to call sendMessage somehow, but first need to verify is this function is working. TESTS REQUIRED
+Need to call sendMessage somehow, but first need to verify is this function is working. *TESTS REQUIRED*
+
 '''
 LED_PIN = 6
 STOP_SIGNAL_PIN = 16
@@ -30,76 +31,79 @@ backwardPin = 27
 delayTime = 2
 motor_opened = False
 
+#2,3
 # Pin that connects the LED
 LED_PIN2 = 10
 
+#Pin that connects the stirrer
+STIRRER_PIN = 24
+
 #setup
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(RESET_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(forwardPin, GPIO.OUT)
-GPIO.setup(backwardPin, GPIO.OUT)
-GPIO.setup(LED_PIN, GPIO.OUT)
+stop_signal = DigitalOutputDevice(STOP_SIGNAL_PIN)
+stirrer = DigitalOutputDevice(STIRRER_PIN)
+button = Button(BUTTON_PIN, pull_up=True)
+reset_button = Button(RESET_PIN, pull_up=True)
+forward_motor = DigitalOutputDevice(forwardPin)
+backward_motor = DigitalOutputDevice(backwardPin)
+led = LED(LED_PIN)
+led2 = LED(LED_PIN2)
 
 #stops the car but setting stop_signal_pin to low
 def setStopPinOn():
-    GPIO.setmode(GPIO.BCM) #BCM so program can understand what pins on the Raspberry pi we are using (GPIO pins) and what that pin will be used for
-    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #Setup is used to tell the Raspberry pi which pin will be used
-    GPIO.output(STOP_SIGNAL_PIN, GPIO.LOW) #Send a low signal to the specified pin
-    GPIO.output(LED_PIN, GPIO.LOW)
+    stop_signal.off()  # Sets pin to LOW
+    led.off() 
+    
+def turnStirrerOn():
+    stirrer.on()    
 
 def setStopPinOff():
     # Moves the card by adding a high signal to designated stop signal
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(STOP_SIGNAL_PIN, GPIO.OUT) #GPIO.OUT meaning it will be used as an output pin 
     time.sleep(0.2)
-    GPIO.output(STOP_SIGNAL_PIN, GPIO.HIGH) #set pin to a high, raspberry pi sends out a high signal from specified pin
+    stop_signal.on()  #set pin to a high, raspberry pi sends out a high signal from specified pin
     time.sleep(0.2) 
-    GPIO.output(LED_PIN, GPIO.HIGH) 
+    led.on() 
 
 def motor_open():
-    GPIO.output(forwardPin, GPIO.HIGH) # motor turns a certain direction with one output pin high, and one low (motor will turn in direction of current flow)
-    GPIO.output(backwardPin, GPIO.LOW) 
+    forward_motor.on()  # Sets forward pin to HIGH
+    backward_motor.off()  # Sets backward pin to LOW
     time.sleep(delayTime)
     # stop
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.LOW)
-
+    forward_motor.off()
+    backward_motor.off() 
 
 def motor_close():
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.HIGH)
-    time.sleep(delayTime)
-
+    forward_motor.off()
+    backward_motor.on()
+    time.sleep(delayTime) # i added this no sure if this is right
     # stop
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.LOW)
+    forward_motor.off()
+    backward_motor.off()
 
 def motor():
     # spinforward
-    GPIO.output(forwardPin, GPIO.HIGH)
-    GPIO.output(backwardPin, GPIO.LOW)
+    forward_motor.on()
+    backward_motor.off() 
     time.sleep(delayTime)
 
     # stop
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.LOW)
+    forward_motor.off()
+    backward_motor.off() 
     time.sleep(8)
 
     # spinbackwards
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.HIGH)
+    forward_motor.off()
+    backward_motor.on()
     time.sleep(delayTime)
 
     # stop
-    GPIO.output(forwardPin, GPIO.LOW)
-    GPIO.output(backwardPin, GPIO.LOW)
+    forward_motor.off() 
+    backward_motor.off()
 
 
 def startOperations():
     # if operationactive not on, start operations
-    
-    GPIO.output(LED_PIN2, GPIO.HIGH) # Turning on an LED that is connected to LED_PIN2
+     
+    led2.on() # Turning on an LED that is connected to LED_PIN2
 
     if not alg.operation_active.is_set(): #checks to see if thread is already running
         threading.Thread(target=sequentialOperations).start() #starts thread if it is not already running after start buttton is pressed
@@ -115,6 +119,11 @@ def sequentialOperations():
         # defining stop pin
         setStopPinOn()
         motor() #motor will run regardless of reset button
+        #time.sleep(3)
+        #call to stir function
+        turnStirrerOn()
+        
+        
         print("motor done")
         
         if alg.operation_active.is_set(): #if reset button was pressd algorithm will not run (this is used to avoid connecting the rasberry pi to a monitor and physically stopping the algorithm)
@@ -134,20 +143,17 @@ def sequentialOperations():
         # open motor to neutralize reaction
         
 
-
-
-
-def buttonPressedCallback(channel):
+def buttonPressedCallback():
     # if statements act as safety net to make sure no multiple threads can run
-    if channel == BUTTON_PIN and not alg.operation_active.is_set():
-        print("Im Starting")
-        startOperations()
+    if not alg.operation_active.is_set():
+         print("Im Starting")
+         startOperations()
+       
 
-
-def resetButton(channel):
+def resetButtonCallback():
     #global motor_opened
     # if thread is active clear/reset it and make sure car is stopped
-    if alg.operation_active.is_set() and channel == RESET_PIN:
+    if alg.operation_active.is_set():
         alg.operation_active.clear()
         print("Operations were reset")
     # not active so ignore reset press
@@ -156,18 +162,17 @@ def resetButton(channel):
         #motor_close()
     #setStopPinOn()
     
-
-
 # awaits button press events
-GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, callback=buttonPressedCallback, bouncetime=100)
-GPIO.add_event_detect(RESET_PIN, GPIO.FALLING, callback=resetButton, bouncetime=100)
+button.when_pressed = buttonPressedCallback()
+reset_button.when_pressed = resetButtonCallback()
+
 
 # enters infinite loop so the program does not stop running
 try:
     while True:
         time.sleep(0.1)
+        i2cprotocol.send_message()
 
 #CTRL C to quit and cleanup GPIO
-except KeyBoardInterrupt:
+except KeyboardInterrupt:
     print("finished")
-    GPIO.cleanup()

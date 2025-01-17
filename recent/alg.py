@@ -5,7 +5,7 @@ import time
 from picamera2 import Picamera2, Preview
 from libcamera import controls
 import threading
-import sendMessage
+
 
 # Threading event
 operation_active = threading.Event()
@@ -83,7 +83,6 @@ def running_alg():
         picam2.start_preview(Preview.QTGL)
         picam2.start()
         time.sleep(1)
-
         temp_array = deque(maxlen=500)
         stdev_array = []
         frame_size = 0
@@ -92,7 +91,9 @@ def running_alg():
         pixels_to_measure = random_coords
 
         try:
+            print("I am in the loop!!!!")
             while operation_active.is_set():
+                
                 if not process_frame(picam2, pixels_to_measure, temp_array, stdev_array, offset, frame_size, start_time):
                     break  # Stop processing if reaction is detected as complete
                 frame_size += 1
